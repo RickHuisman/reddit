@@ -1,4 +1,5 @@
 use client::{Config, Reddit};
+use std::env;
 
 pub mod responses;
 
@@ -16,23 +17,41 @@ pub use user::User;
 
 /// Utils for requests.
 pub mod util;
+pub use util::RedditError;
 
 pub mod client;
 
+async fn get_config() -> Result<Config, RedditError> {
+    let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
+    let client_id = "anWiP5x4S6dQJw";
+    let client_secret = "rCCer2PLP4CYSKpPy0P-tm7iA6TcrQ";
+
+    Ok(Config::new(user_agent, client_id, client_secret)
+        .username("testaccountfoobar")
+        .password("testaccountfoobar")
+        .login()
+        .await?)
+}
+
 #[tokio::main]
 async fn main() {
-    let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
-    let client_id = "VygjvmTaJ88XqQ";
-    let client_secret = "IRxsyHEpufmYIEnMyWEI8TmNINw";
+    /* let reddit = Reddit::new(config);
+     * reddit.subreddit.
+     * 
+     */
 
-    let config = Config::new(user_agent, client_id, client_secret)
-        .username("rickhuis")
-        .password("Trap71rick")
-        .login()
-        .await
-        .unwrap();
+    // let config = get_config().await.unwrap();
 
-    let reddit = Reddit::new(config);
+    // let reddit = Reddit::new(config);
+    // let overview = reddit.user("rickhuis").overview();
+
+    // reddit.subreddit("soccer").search().await;
+    // let feed = reddit.subreddit("formula1").hot(None).await.unwrap();
+    // for s in feed.data.children {
+    //     println!("{}", s.data.title);
+    // }
+
+    // reddit.subreddit("soccer").subscribe().await;
     // let moderators = reddit.subreddit("soccer").moderators().await;
     // if let Ok(mods) = moderators {
     //     for m in mods.data.children {

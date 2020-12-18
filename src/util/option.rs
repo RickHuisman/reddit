@@ -65,7 +65,7 @@ pub enum TimeFilter {
 
 impl fmt::Display for TimeFilter {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match *self {
+        let filter = match *self {
             TimeFilter::Hour => "hour",
             TimeFilter::Day => "day",
             TimeFilter::Week => "week",
@@ -73,6 +73,37 @@ impl fmt::Display for TimeFilter {
             TimeFilter::Year => "year",
             TimeFilter::AllTime => "all",
         };
-        write!(f, "&t={}", s)
+        write!(f, "&t={}", filter)
+    }
+}
+
+// TODO Rename
+pub struct UserOptions {
+    // TODO
+    /// an integer between 2 and 10
+    context: u8,
+    time: TimeFilter,
+    sort: SortOption,
+    feed: FeedOption,
+    include_categories: bool,
+    // show: 
+}
+
+pub enum SortOption {
+    Hot,
+    New,
+    Top,
+    Controversial
+}
+
+impl fmt::Display for SortOption {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let option = match *self {
+            SortOption::Hot => "hot",
+            SortOption::New => "new",
+            SortOption::Top => "Top",
+            SortOption::Controversial => "controversial",
+        };
+        write!(f, "&s={}", option)
     }
 }

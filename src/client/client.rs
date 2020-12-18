@@ -23,6 +23,11 @@ impl Reddit {
         req
     }
 
+    pub fn post(&self, url: &str) -> RequestBuilder {
+        let req = self.client.post(url).headers(self.config.get_headers());
+        req
+    }
+
     pub fn me(&self) -> Me {
         Me::create_new(self)
     }

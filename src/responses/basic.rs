@@ -1,5 +1,4 @@
 //! # Subreddit Submussion Responses
-// use crate::responses::BasicListing;
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -100,7 +99,6 @@ pub struct SubmissionsData {
     /// The Reddit ID for the subreddit where this was posted, **including the leading `t5_`**.
     pub subreddit_id: String,
     /// This is `true` if the score is being hidden.
-    pub hide_score: bool,
     /// This is `false` if the submission is not edited and is the edit timestamp if it is edited.
     /// Access through the functions of `Submission` instead.
     pub edited: Value,
