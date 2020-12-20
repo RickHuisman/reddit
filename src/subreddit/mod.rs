@@ -1,11 +1,11 @@
 use crate::{
+    user::responses::submitted::Submitted,
     util::{FeedOption, RedditError, TimeFilter},
-    Reddit,
-    Config,
+    Config, Reddit,
 };
 
-use std::collections::HashMap;
 use reqwest::Response;
+use std::collections::HashMap;
 
 pub mod responses;
 use responses::{Moderators, Submissions};
@@ -106,12 +106,7 @@ impl<'a> Subreddit<'a> {
         // TODO
         let url = format!("{}/search/.json", self.sub_url);
 
-        let result = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .unwrap();
+        let result = self.client.get(&url).send().await.unwrap();
 
         println!("{:?}", url);
         println!("{:?}", result);
@@ -125,24 +120,14 @@ impl<'a> Subreddit<'a> {
         let url = self.build_oath_url("/api/subscribe/");
         let params = [("action", "sub"), ("sr_name", &self.name)];
 
-        Ok(self
-            .client
-            .post(&url)
-            .form(&params)
-            .send()
-            .await?)
+        Ok(self.client.post(&url).form(&params).send().await?)
     }
 
     pub async fn unsubscribe(&self) -> Result<Response, RedditError> {
         let url = self.build_oath_url("/api/subscribe/");
         let params = [("action", "unsub"), ("sr_name", &self.name)];
 
-        Ok(self
-            .client
-            .post(&url)
-            .form(&params)
-            .send()
-            .await?)
+        Ok(self.client.post(&url).form(&params).send().await?)
     }
 
     // pub async fn rules(&self) -> Result<Rules, RedditError> {
@@ -154,21 +139,19 @@ impl<'a> Subreddit<'a> {
 #[cfg(test)]
 mod tests {
     use super::Config;
+    use super::FeedOption;
     use super::Reddit;
     use super::TimeFilter;
-    use super::Subreddit;
-    use super::FeedOption;
     use tokio;
 
     async fn get_reddit() -> Reddit {
-        // TODO Get from env
         let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
-        let client_id = "VygjvmTaJ88XqQ";
-        let client_secret = "IRxsyHEpufmYIEnMyWEI8TmNINw";
+        let client_id = "anWiP5x4S6dQJw";
+        let client_secret = "rCCer2PLP4CYSKpPy0P-tm7iA6TcrQ";
 
         let config = Config::new(user_agent, client_id, client_secret)
-            .username("rickhuis")
-            .password("Trap71rick")
+            .username("testaccountfoobar")
+            .password("testaccountfoobar")
             .login()
             .await
             .unwrap();

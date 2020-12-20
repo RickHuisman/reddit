@@ -1,5 +1,4 @@
 use client::{Config, Reddit};
-use std::env;
 
 pub mod responses;
 

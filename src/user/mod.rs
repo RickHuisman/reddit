@@ -48,20 +48,6 @@ impl<'a> User<'a> {
              .await?)
     }
 
-    // pub async fn upvoted(&self) {
-    //     let url = format!("https://oath.reddit.com/user/{}/upvoted/.json", self.user);
-
-    //     let result = self
-    //         .client
-    //         .get(&url)
-    //         .send()
-    //         .await.unwrap()
-    //         .text()
-    //         .await.unwrap();
-
-    //     println!("{}", result);
-    // }
-
     pub async fn submitted(&self) -> Result<Submitted, RedditError> {
         let url = format!("https://api.reddit.com/user/{}/submitted/.json", self.user);
         let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
@@ -75,6 +61,26 @@ impl<'a> User<'a> {
             .await?
             .json::<Submitted>()
             .await?)
+    }
+
+    pub async fn upvoted(&self) {
+        // TODO
+        println!("test");
+        //let url = format!("https://oath.reddit.com/user/{}/upvoted/.json", self.user);
+        let url = "https://api.reddit.com/user/testaccountfoobar/upvoted/.json";
+        let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
+
+        let result = self
+            .client
+            .client
+            .get(url)
+            .header(USER_AGENT, user_agent)
+            .send()
+            .await.unwrap()
+            .text()
+            .await.unwrap();
+
+        println!("{}", result);
     }
 
     pub async fn comments(&self) -> Result<UserComments, RedditError> {
@@ -100,7 +106,6 @@ mod tests {
     use tokio;
 
     async fn get_reddit() -> Reddit {
-        // TODO Get from env
         let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
         let client_id = "anWiP5x4S6dQJw";
         let client_secret = "rCCer2PLP4CYSKpPy0P-tm7iA6TcrQ";
@@ -136,16 +141,6 @@ mod tests {
         assert!(1 == 1);
     }
 
-//    #[tokio::test]
-//    async fn upvoted() {
-//        let reddit = get_reddit().await;
-//        let user = reddit.user("rickhuis");
-//
-//        let upvoted = user.upvoted().await;
-//
-//        // assert!(upvoted.is_ok());
-//    }
-
     #[tokio::test]
     async fn submitted() {
         let reddit = get_reddit().await;
@@ -154,6 +149,16 @@ mod tests {
         let submitted = user.submitted().await;
 
         assert!(submitted.is_ok());
+    }
+
+    #[tokio::test]
+    async fn upvoted() {
+        let reddit = get_reddit().await;
+        let user = reddit.user("testaccountfoobar");
+
+        let upvoted = user.upvoted().await;
+
+        // assert!(upvoted.is_ok());
     }
 
     #[tokio::test]
