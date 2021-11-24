@@ -1,14 +1,18 @@
 use crate::{
-    user::responses::submitted::Submitted,
-    util::{FeedOption, RedditError, TimeFilter},
-    Config, Reddit,
+    util::{
+        builder::SubredditRequestBuilder, ListingOptions, RedditError,
+        TimeFilter,
+    },
+    Reddit,
 };
 
 use reqwest::Response;
+
 use std::collections::HashMap;
 
 pub mod responses;
 use responses::{Moderators, Submissions};
+use crate::client::route::Route;
 
 pub struct Subreddit<'a> {
     /// Name of subreddit.
@@ -22,7 +26,7 @@ impl<'a> Subreddit<'a> {
     pub fn create_new(client: &'a Reddit, name: &str) -> Subreddit<'a> {
         Subreddit {
             name: name.to_owned(),
-            sub_url: format!("https://oauth.reddit.com/r/{}", name.to_owned()),
+            sub_url: format!("https://oauth.reddit.com/r/{}", name.to_string()), // TODO: Ugly.
             client,
         }
     }
@@ -30,7 +34,7 @@ impl<'a> Subreddit<'a> {
     async fn get_feed(
         &self,
         endpoint: &str,
-        options: Option<FeedOption>,
+        options: Option<ListingOptions>,
     ) -> Result<Submissions, RedditError> {
         let url = &mut format!("{}/{}.json?", self.sub_url, endpoint);
         let mut params = HashMap::new();
@@ -43,11 +47,11 @@ impl<'a> Subreddit<'a> {
             }
 
             if let Some(count) = option.count {
-                params.insert("count", count.to_owned().to_string());
+                params.insert("count", count.to_string());
             }
 
             if let Some(limit) = option.limit {
-                params.insert("limit", limit.to_owned().to_string());
+                params.insert("limit", limit.to_string());
             }
         }
 
@@ -61,46 +65,53 @@ impl<'a> Subreddit<'a> {
             .await?)
     }
 
-    pub async fn new(&self, option: Option<FeedOption>) -> Result<Submissions, RedditError> {
-        self.get_feed("new", option).await
+    pub fn new(&self) -> SubredditRequestBuilder<Submissions> {
+        let url = format!(
+            "https://oauth.reddit.com/r/{}/new/.json?",
+            self.name.to_owned()
+        );
+        SubredditRequestBuilder::new(self.client, &url)
     }
 
-    pub async fn hot(&self, option: Option<FeedOption>) -> Result<Submissions, RedditError> {
-        self.get_feed("hot", option).await
+    pub fn hot(&self) -> SubredditRequestBuilder<Submissions> {
+        // let url = Route::SubredditHot(self.sub_url.to_string()); TODO
+        let url = format!(
+            "https://oauth.reddit.com/r/{}/hot/.json?",
+            self.name.to_owned()
+        );
+        SubredditRequestBuilder::new(self.client, &url)
     }
 
-    pub async fn rising(&self, option: Option<FeedOption>) -> Result<Submissions, RedditError> {
-        self.get_feed("rising", option).await
+    pub fn rising(&self) -> SubredditRequestBuilder<Submissions> {
+        let url = format!(
+            "https://oauth.reddit.com/r/{}/rising/.json?",
+            self.name.to_owned()
+        );
+        SubredditRequestBuilder::new(self.client, &url)
     }
 
-    pub async fn top(
-        &self,
-        option: Option<FeedOption>,
-        time: TimeFilter,
-    ) -> Result<Submissions, RedditError> {
+    pub fn top(&self, time: TimeFilter) -> SubredditRequestBuilder<Submissions> {
         let path = format!("top?{}&", time);
-        self.get_feed(&path, option).await
+        let url = &mut format!("{}/{}.json?", self.sub_url, path);
+
+        SubredditRequestBuilder::new(self.client, &url)
     }
 
-    pub async fn controversial(
-        &self,
-        option: Option<FeedOption>,
-        time: TimeFilter,
-    ) -> Result<Submissions, RedditError> {
+    pub fn controversial(&self, time: TimeFilter) -> SubredditRequestBuilder<Submissions> {
         let path = format!("controversial?{}&", time);
-        self.get_feed(&path, option).await
+        let url = &mut format!("{}/{}.json?", self.sub_url, path);
+
+        SubredditRequestBuilder::new(self.client, &url)
     }
 
-    pub async fn moderators(&self) -> Result<Moderators, RedditError> {
-        let url = format!("{}/about/moderators/.json", self.sub_url);
-        Ok(self
-            .client
-            .get(&url)
-            .send()
-            .await?
-            .json::<Moderators>()
-            .await?)
-    }
+    // TODO
+    // pub fn moderators(&self) -> ModeratorRequestBuilder<Moderators> {
+    //     let url = format!(
+    //         "https://oauth.reddit.com/r/{}/about/moderators/.json?",
+    //         self.name.to_owned()
+    //     );
+    //     ModeratorRequestBuilder::new(&url)
+    // }
 
     pub async fn search(&self) {
         // TODO
@@ -112,6 +123,7 @@ impl<'a> Subreddit<'a> {
         println!("{:?}", result);
     }
 
+    // TODO: Move.
     fn build_oath_url(&self, dest: &str) -> String {
         format!("https://oauth.reddit.com/{}", dest)
     }
@@ -130,6 +142,7 @@ impl<'a> Subreddit<'a> {
         Ok(self.client.post(&url).form(&params).send().await?)
     }
 
+    // TODO
     // pub async fn rules(&self) -> Result<Rules, RedditError> {
     //     let url = format!("{}/about/rules/.json", self.sub_url);
     //     Ok(self.client.get(&url).send().await?.json::<Rules>().await?)
@@ -138,8 +151,8 @@ impl<'a> Subreddit<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::Config;
-    use super::FeedOption;
+    use crate::client::Config;
+
     use super::Reddit;
     use super::TimeFilter;
     use tokio;
@@ -165,18 +178,17 @@ mod tests {
         let subreddit = reddit.subreddit("soccer");
 
         // Test feeds
-        let new = subreddit.new(None).await;
-        assert!(new.is_ok());
+        // let new = subreddit.new().send(reddit).await;
+        // assert!(new.is_ok());
 
-        let hot = subreddit.hot(None).await;
-        assert!(hot.is_ok());
+        // let hot = subreddit.hot().send(reddit).await;
+        // assert!(hot.is_ok());
 
-        let option = Some(FeedOption::new().limit(5));
-        let rising = subreddit.rising(option).await;
-        assert!(rising.is_ok());
+        // let rising = subreddit.rising().send(reddit).await;
+        // assert!(rising.is_ok());
 
-        let rising_len = rising.unwrap().data.children.len();
-        assert!(rising_len == 5);
+        // let rising_len = rising.unwrap().data.children.len();
+        // assert!(rising_len == 5);
 
         let top = subreddit.top(None, TimeFilter::Month).await;
         assert!(top.is_ok());
@@ -184,8 +196,29 @@ mod tests {
         let controversial = subreddit.controversial(None, TimeFilter::Month).await;
         assert!(controversial.is_ok());
 
+        // TODO:
         // Test moderators
-        let moderators = subreddit.moderators().await;
-        assert!(moderators.is_ok());
+        // let moderators = subreddit.moderators().send().await;
+        // assert!(moderators.is_ok());
+    }
+
+    #[tokio::test]
+    async fn subscribe() {
+        let reddit = get_reddit().await;
+        let subreddit = reddit.subreddit("soccer");
+
+        let result = subreddit.subscribe().await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn unsubscribe() {
+        let reddit = get_reddit().await;
+        let subreddit = reddit.subreddit("soccer");
+
+        let result = subreddit.unsubscribe().await;
+
+        assert!(result.is_ok());
     }
 }

@@ -3,4 +3,4 @@ pub mod me;
 pub use me::MeData;
 
 pub mod inbox;
-pub use inbox::InboxData;
+pub use inbox::Inbox;

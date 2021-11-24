@@ -16,9 +16,9 @@ pub struct BasicThing<T> {
 /// JSON list response.
 #[derive(Deserialize, Debug)]
 pub struct Listing<T> {
-    /// Modhash
+    /// Modhash TODO
     pub modhash: Option<String>,
-    /// I dunno what this is
+    /// I dunno what this is TODO
     pub dist: Option<i32>,
     /// The fullname of the listing that follows after this page.
     pub after: Option<String>,
@@ -60,7 +60,7 @@ pub struct SubmissionsData {
     /// - old
     /// - qa
     /// - confidence
-    pub suggested_sort: Option<String>,
+    pub suggested_sort: Option<String>, // TODO: Use enum.
     // skipped user_reports and secure_media
     /// If this post is flaired, this set to `Some(FLAIR TEXT)`. Otherwise, it is `None`.
     /// Link flairs **can** be empty strings.

@@ -29,11 +29,11 @@ impl Reddit {
     }
 
     pub fn me(&self) -> Me {
-        Me::create_new(self)
+        Me::new(self)
     }
 
     pub fn user(&self, name: &str) -> User {
-        User::create_new(self, name)
+        User::new(self, name)
     }
 
     pub fn subreddit(&self, name: &str) -> Subreddit {

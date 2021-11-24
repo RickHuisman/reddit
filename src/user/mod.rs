@@ -1,12 +1,12 @@
-use crate::client::{Reddit, Config};
+use crate::client::Reddit;
 use crate::util::RedditError;
 use reqwest::header::USER_AGENT;
 
 pub mod responses;
 use self::responses::about::About;
+use self::responses::comments::UserComments;
 use self::responses::overview::Overview;
 use self::responses::submitted::Submitted;
-use self::responses::comments::UserComments;
 
 pub struct User<'a> {
     client: &'a Reddit,
@@ -14,38 +14,41 @@ pub struct User<'a> {
 }
 
 impl<'a> User<'a> {
-    pub fn create_new(client: &'a Reddit, user: &str) -> User<'a> {
-        User { client, user: user.to_string() }
+    pub fn new(client: &'a Reddit, user: &str) -> User<'a> {
+        User {
+            client,
+            user: user.to_string(),
+        }
     }
 
     pub async fn about(&self) -> Result<About, RedditError> {
-         let url = format!("https://api.reddit.com/user/{}/about.json", self.user);
-         let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
+        let url = format!("https://api.reddit.com/user/{}/about.json", self.user);
+        let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
 
-         Ok(self
-             .client
-             .client
-             .get(&url)
-             .header(USER_AGENT, user_agent)
-             .send()
-             .await?
-             .json::<About>()
-             .await?)
+        Ok(self
+            .client
+            .client
+            .get(&url)
+            .header(USER_AGENT, user_agent)
+            .send()
+            .await?
+            .json::<About>()
+            .await?)
     }
 
     pub async fn overview(&self) -> Result<Overview, RedditError> {
-         let url = format!("https://api.reddit.com/user/{}/overview.json", self.user);
-         let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
+        let url = format!("https://api.reddit.com/user/{}/overview.json", self.user);
+        let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
 
-         Ok(self
-             .client
-             .client
-             .get(&url)
-             .header(USER_AGENT, user_agent)
-             .send()
-             .await?
-             .json::<Overview>()
-             .await?)
+        Ok(self
+            .client
+            .client
+            .get(&url)
+            .header(USER_AGENT, user_agent)
+            .send()
+            .await?
+            .json::<Overview>()
+            .await?)
     }
 
     pub async fn submitted(&self) -> Result<Submitted, RedditError> {
@@ -76,9 +79,11 @@ impl<'a> User<'a> {
             .get(url)
             .header(USER_AGENT, user_agent)
             .send()
-            .await.unwrap()
+            .await
+            .unwrap()
             .text()
-            .await.unwrap();
+            .await
+            .unwrap();
 
         println!("{}", result);
     }
@@ -101,9 +106,9 @@ impl<'a> User<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::Config;
     use super::Reddit;
     use tokio;
+    use crate::client::Config;
 
     async fn get_reddit() -> Reddit {
         let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
@@ -138,7 +143,7 @@ mod tests {
         let overview = user.overview().await.unwrap();
         println!("{:?}", overview);
 
-        assert!(1 == 1);
+        assert!(1 == 1); // TODO
     }
 
     #[tokio::test]

@@ -1,3 +1,4 @@
+// TODO
 // use config::Config;
 // use reqwest::Client;
 // use reqwest::RequestBuilder;
@@ -18,4 +19,6 @@ pub mod config;
 pub use config::Config;
 
 pub mod client;
+pub mod route;
+
 pub use client::Reddit;

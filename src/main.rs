@@ -17,6 +17,7 @@ pub use user::User;
 /// Utils for requests.
 pub mod util;
 pub use util::RedditError;
+use crate::util::TimeFilter;
 
 pub mod client;
 
@@ -33,15 +34,32 @@ async fn get_config() -> Result<Config, RedditError> {
 }
 
 #[tokio::main]
-async fn main() {
-    /* let reddit = Reddit::new(config);
-     * reddit.subreddit.
-     * 
-     */
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let config = get_config().await?;
+    let reddit = Reddit::new(config);
 
-    // let config = get_config().await.unwrap();
+    // let inbox = reddit
+    //     .me()
+    //     .inbox()
+    //     .send()
+    //     .await?;
 
-    // let reddit = Reddit::new(config);
+    let feed = reddit
+        .subreddit("soccer")
+        .controversial(TimeFilter::Day)
+        .limit(5)
+        .send()
+        .await;
+
+    for s in feed?.data.children {
+        println!("Title: {}", s.data.title);
+    }
+
+    Ok(())
+
+    // let inbox = reddit.me().inbox().send(reddit).await.unwrap();
+    // println!("{:?}", inbox.data.children);
+
     // let overview = reddit.user("rickhuis").overview();
 
     // reddit.subreddit("soccer").search().await;
@@ -74,8 +92,4 @@ async fn main() {
     //     .subreddit("soccer")
     //     .top(Some(option), util::TimeFilter::Month)
     //     .await;
-
-    // for s in feed.unwrap().data.children {
-    //     println!("Title: {}", s.data.title);
-    // }
 }

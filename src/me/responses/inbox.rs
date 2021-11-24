@@ -1,5 +1,10 @@
-//! # Inbox Reponses
+//! # Inbox responses
 use serde::Deserialize;
+
+use crate::responses::BasicListing;
+
+/// Inbox
+pub type Inbox = BasicListing<InboxData>;
 
 /// InboxItem
 #[derive(Debug, Deserialize)]

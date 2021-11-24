@@ -1,20 +1,22 @@
+use std::collections::HashMap;
 use std::fmt;
 
 /// Basic feed options
-pub struct FeedOption {
+pub struct ListingOptions {
     /// `after` and `before` indicate the fullname of an item in the listing to use as the anchor point of the slice.
     pub after: Option<String>,
     /// Only one should be specified.
     pub before: Option<String>,
     /// The number of items already seen in this listing.
-    pub count: Option<u32>,
-    pub limit: Option<u32>,
+    pub count: Option<u32>, // TODO: Use usize?
+    // TODO: Doc.
+    pub limit: Option<u32>, // TODO: Use usize?
 }
 
-impl FeedOption {
-    /// Create a new `FeedOption` instance.
-    pub fn new() -> FeedOption {
-        FeedOption {
+impl ListingOptions {
+    /// Create a new `FeedOptions` instance.
+    pub fn new() -> Self {
+        Self {
             after: None,
             before: None,
             count: None,
@@ -23,34 +25,60 @@ impl FeedOption {
     }
 
     /// Set after param.
-    pub fn after(mut self, after: &str) -> FeedOption {
+    pub fn after(mut self, after: &str) -> Self {
         if !self.before.is_none() {
             panic!("Cannot have an after and before param at the same time");
         }
 
-        self.after = Some(after.to_owned());
+        self.after = Some(after.to_string());
         self
     }
 
     /// Set before param.
-    pub fn before(mut self, before: &str) -> FeedOption {
+    pub fn before(mut self, before: &str) -> Self {
         if !self.after.is_none() {
             panic!("Cannot have an after and before param at the same time");
         }
 
-        self.before = Some(before.to_owned());
+        self.before = Some(before.to_string());
         self
     }
 
     /// Set count param.
-    pub fn count(mut self, count: u32) -> FeedOption {
+    pub fn count(mut self, count: u32) -> Self {
         self.count = Some(count);
         self
     }
 
-    pub fn limit(mut self, limit: u32) -> FeedOption {
+    pub fn limit(mut self, limit: u32) -> Self {
         self.limit = Some(limit);
         self
+    }
+
+    // TODO: Check lifetime annotation.
+    // TODO: Convert to .into()
+    pub fn to_params<'a>(self) -> HashMap<&'a str, String> {
+        let mut params = HashMap::new();
+
+        if let Some(after) = self.after {
+            params.insert("after", after.to_string());
+        } else if let Some(before) = self.before {
+            params.insert("before", before.to_string());
+        }
+
+        if let Some(count) = self.count {
+            params.insert("count", count.to_string());
+        }
+        if let Some(limit) = self.limit {
+            params.insert("limit", limit.to_string());
+        }
+
+        // TODO
+        // if let Some(sr_detail) = self.sr_detail {
+        //     params.insert("sr_detail", sr_detail.to_string());
+        // }
+
+        params
     }
 }
 
@@ -84,9 +112,9 @@ pub struct UserOptions {
     context: u8,
     time: TimeFilter,
     sort: SortOption,
-    feed: FeedOption,
+    feed: ListingOptions, // TODO: Rename field.
     include_categories: bool,
-    // show: 
+    // show: TODO
 }
 
 pub enum SortOption {
@@ -101,7 +129,7 @@ impl fmt::Display for SortOption {
         let option = match *self {
             SortOption::Hot => "hot",
             SortOption::New => "new",
-            SortOption::Top => "Top",
+            SortOption::Top => "Top", // TODO: "Top" or "top"?
             SortOption::Controversial => "controversial",
         };
         write!(f, "&s={}", option)

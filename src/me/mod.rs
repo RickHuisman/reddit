@@ -1,17 +1,17 @@
-//! # Me
 //! Me module.
 
-extern crate reqwest;
-extern crate serde_json;
+use crate::{client::Reddit, subreddit::responses::Submissions};
 
 use crate::{
-    client::{Config, Reddit},
-    subreddit::responses::Submissions,
-    util::RedditError,
+    util::{
+        builder::ListingRequestBuilder, RedditError,
+        TimeFilter,
+    },
 };
-
 pub mod responses;
+use responses::Inbox;
 use responses::MeData;
+
 
 /// Me
 pub struct Me<'a> {
@@ -19,157 +19,218 @@ pub struct Me<'a> {
 }
 
 impl<'a> Me<'a> {
-    pub fn create_new(client: &'a Reddit) -> Me<'a> {
+    pub fn new(client: &'a Reddit) -> Me<'a> {
         Me { client }
     }
 
     /// Get me
     pub async fn me(&self) -> Result<MeData, RedditError> {
-        let url = format!("https://oauth.reddit.com/api/v1/me{}", "");
+        let url = format!("https://oauth.reddit.com/api/v1/me");
 
         Ok(self.client.get(&url).send().await?.json::<MeData>().await?)
     }
 
-    // /// Submit link
-    // pub async fn submit_link(
-    //     &self,
-    //     title: &str,
-    //     link: &str,
-    //     sr: &str,
-    // ) -> Result<Response, RedditError> {
-    //     let form = [
-    //         ("kind", "link"),
-    //         ("title", title),
-    //         ("url", link),
-    //         ("sr", sr),
-    //     ];
+    /// Get users inbox
+    pub fn inbox(&self) -> ListingRequestBuilder<Inbox> {
+        let url = "https://oauth.reddit.com/message/inbox/.json";
+        ListingRequestBuilder::new(self.client, url)
+    }
 
-    //     self.post("api/submit", &form).await
-    // }
+    /// Get users unread messages
+    pub fn unread(&self) -> ListingRequestBuilder<Inbox> {
+        let url = "https://oauth.reddit.com/message/unread/.json";
+        ListingRequestBuilder::new(self.client, url)
+    }
 
-    // /// Submit text
-    // pub async fn submit_text(
-    //     &self,
-    //     title: &str,
-    //     text: &str,
-    //     sr: &str,
-    // ) -> Result<Response, RedditError> {
-    //     let form = [
-    //         ("kind", "self"),
-    //         ("title", title),
-    //         ("text", text),
-    //         ("sr", sr),
-    //     ];
+    /// Get users sent messages
+    pub fn sent(&self) -> ListingRequestBuilder<Inbox> {
+        let url = "https://oauth.reddit.com/message/sent/.json";
+        ListingRequestBuilder::new(self.client, url)
+    }
 
-    //     self.post("api/submit", &form).await
-    // }
+    /// Get submitted
+    pub fn submitted(&self) -> ListingRequestBuilder<Submissions> {
+        let url = format!(
+            "https://oauth.reddit.com/user/{}/submitted/.json",
+            self.client.config.username.to_owned().unwrap()
+        );
+        ListingRequestBuilder::new(self.client, &url)
+    }
 
-    // /// Compose message
-    // pub async fn compose_message(
-    //     &self,
-    //     username: &str,
-    //     subject: &str,
-    //     body: &str,
-    // ) -> Result<Response, RedditError> {
-    //     let form = [
-    //         ("api_type", "json"),
-    //         ("subject", subject),
-    //         ("text", body),
-    //         ("to", username),
-    //     ];
+    /// Get hidden
+    pub fn hidden(&self) -> ListingRequestBuilder<Submissions> {
+        let url = format!(
+            "https://oauth.reddit.com/user/{}/hidden/.json",
+            self.client.config.username.to_owned().unwrap()
+        );
+        ListingRequestBuilder::new(self.client, &url)
+    }
 
-    //     self.post("api/compose", &form).await
-    // }
+    /// Get saved
+    pub fn saved(&self) -> ListingRequestBuilder<Submissions> {
+        let url = format!(
+            "https://oauth.reddit.com/user/{}/saved/.json",
+            self.client.config.username.to_owned().unwrap()
+        );
+        ListingRequestBuilder::new(self.client, &url)
+    }
 
-    // /// Get user's submitted posts.
-    // pub async fn inbox(&self) -> Result<Inbox, RedditError> {
-    //     Ok(self.get("message/inbox").await?.json::<Inbox>().await?)
-    // }
+    /// Get upvoted
+    pub fn upvoted(&self) -> ListingRequestBuilder<Submissions> {
+        let url = format!(
+            "https://oauth.reddit.com/user/{}/upvoted/.json",
+            self.client.config.username.to_owned().unwrap()
+        );
+        ListingRequestBuilder::new(self.client, &url)
+    }
 
-    // /// Get saved
-    // pub async fn saved(&self) -> Result<Submissions, RedditError> {
-    //     let url = format!("https://oauth.reddit.com/user/rickhuis/saved/.json");
-    //
-    //     let result = self.client.get(&url).send().await?.text().await?;
-    //
-    //     println!("{}", result);
-    //
-    //     Ok(self
-    //         .client
-    //         .get(&url)
-    //         .send()
-    //         .await?
-    //         .json::<Submissions>()
-    //         .await?)
-    // }
+    /// Get downvoted
+    pub fn downvoted(&self) -> ListingRequestBuilder<Submissions> {
+        let url = format!(
+            "https://oauth.reddit.com/user/{}/downvoted/.json",
+            self.client.config.username.to_owned().unwrap()
+        );
+        ListingRequestBuilder::new(self.client, &url)
+    }
 
-    // /// Get upvoted
-    // pub async fn upvoted(&self) -> Result<Submissions, RedditError> {
-    //     let url = format!(
-    //         "user/{}/upvoted/.json",
-    //         self.config.username.to_owned().unwrap()
-    //     );
+    /// Get gilded
+    pub fn gilded(&self) -> ListingRequestBuilder<Submissions> {
+        let url = format!(
+            "https://oauth.reddit.com/user/{}/gilded/.json",
+            self.client.config.username.to_owned().unwrap()
+        );
+        ListingRequestBuilder::new(self.client, &url)
+    }
 
-    //     Ok(self.get(&url).await?.json::<Submissions>().await?)
-    // }
+    /// Get comments
+    pub fn comments(&self) -> ListingRequestBuilder<Submissions> {
+        let url = format!(
+            "https://oauth.reddit.com/user/{}/comments/.json",
+            self.client.config.username.to_owned().unwrap()
+        );
+        ListingRequestBuilder::new(self.client, &url)
+    }
 
-    // /// Get downvoted
-    // pub async fn downvoted(&self) -> Result<Submissions, RedditError> {
-    //     let url = format!(
-    //         "user/{}/downvoted/.json",
-    //         self.config.username.to_owned().unwrap()
-    //     );
+    // TODO change ListingRequestBuilder into custom
+    // TODO comments
+}
 
-    //     Ok(self.get(&url).await?.json::<Submissions>().await?)
-    // }
+#[cfg(test)]
+mod tests {
+    use crate::client::Config;
 
-    // /// Get users unread messages
-    // pub async fn unread(&self) -> Result<Inbox, RedditError> {
-    //     Ok(self.get("message/unread").await?.json::<Inbox>().await?)
-    // }
+    use super::Reddit;
+    use tokio;
 
-    // /// Mark messages as read
-    // pub async fn mark_read(&self, ids: &str) -> Result<Response, RedditError> {
-    //     let form = [("id", ids)];
-    //     self.post("api/read_message", &form).await
-    // }
+    async fn get_reddit() -> Reddit {
+        let user_agent = "reddit api wrapper v1.0 by /u/rickhuis";
+        let client_id = "anWiP5x4S6dQJw";
+        let client_secret = "rCCer2PLP4CYSKpPy0P-tm7iA6TcrQ";
 
-    // /// Mark messages as unread
-    // pub async fn mark_unread(&self, ids: &str) -> Result<Response, RedditError> {
-    //     let form = [("id", ids)];
-    //     self.post("api/unread_message", &form).await
-    // }
+        let config = Config::new(user_agent, client_id, client_secret)
+            .username("testaccountfoobar")
+            .password("testaccountfoobar")
+            .login()
+            .await
+            .unwrap();
 
-    // /// Comment
-    // pub async fn comment(&self, text: &str, parent: &str) -> Result<Response, RedditError> {
-    //     let form = [("text", text), ("parent", parent)];
-    //     self.post("api/comment", &form).await
-    // }
+        Reddit::new(config)
+    }
 
-    // /// Edit
-    // pub async fn edit(&self, text: &str, parent: &str) -> Result<Response, RedditError> {
-    //     let form = [("text", text), ("thing_id", parent)];
-    //     self.post("api/editusertext", &form).await
-    // }
+    #[tokio::test]
+    async fn inbox() {
+        let reddit = get_reddit().await;
+        let me = reddit.me();
 
-    // /// Logout
-    // pub async fn logout(self) -> Result<(), RedditError> {
-    //     let url = "https://www.reddit.com/api/v1/revoke_token";
+        let inbox = me.inbox().send().await;
+        println!("{:?}", inbox.unwrap());
+    }
 
-    //     let form = [("access_token", self.access_token.to_owned())];
+    #[tokio::test]
+    async fn unread() {
+        let reddit = get_reddit().await;
+        let me = reddit.me();
 
-    //     let response = self
-    //         .client
-    //         .post(url)
-    //         .basic_auth(&self.config.client_id, Some(&self.config.client_secret))
-    //         .form(&form)
-    //         .send()
-    //         .await?;
+        let unread = me.unread().send().await;
+        println!("{:?}", unread.unwrap());
+    }
 
-    //     if response.status() == 204 {
-    //         Ok(())
-    //     } else {
-    //         Err(RedditError::Status(response))
-    //     }
-    // }
+    #[tokio::test]
+    async fn sent() {
+        let reddit = get_reddit().await;
+        let me = reddit.me();
+
+        let sent = me.sent().send().await;
+        println!("{:?}", sent.unwrap());
+    }
+
+    #[tokio::test]
+    async fn submitted() {
+        let reddit = get_reddit().await;
+        let me = reddit.me();
+
+        let hidden = me.submitted().send().await;
+
+        assert!(hidden.is_ok());
+    }
+
+    #[tokio::test]
+    async fn hidden() {
+        let reddit = get_reddit().await;
+        let me = reddit.me();
+
+        let hidden = me.hidden().send().await;
+
+        assert!(hidden.is_ok());
+    }
+
+    #[tokio::test]
+    async fn saved() {
+        let reddit = get_reddit().await;
+        let me = reddit.me();
+
+        let saved = me.saved().send().await;
+
+        assert!(saved.is_ok());
+    }
+
+    #[tokio::test]
+    async fn upvoted() {
+        let reddit = get_reddit().await;
+        let me = reddit.me();
+
+        let upvoted = me.upvoted().send().await;
+
+        assert!(upvoted.is_ok());
+    }
+
+    #[tokio::test]
+    async fn downvoted() {
+        let reddit = get_reddit().await;
+        let me = reddit.me();
+
+        let downvoted = me.downvoted().send().await;
+
+        assert!(downvoted.is_ok());
+    }
+
+    #[tokio::test]
+    async fn gilded() {
+        let reddit = get_reddit().await;
+        let me = reddit.me();
+
+        let gilded = me.gilded().send().await;
+
+        assert!(gilded.is_ok());
+    }
+
+    #[tokio::test]
+    async fn comments() {
+        let reddit = get_reddit().await;
+        let me = reddit.me();
+
+        let comments = me.comments().send().await;
+
+        assert!(comments.is_ok());
+    }
 }
